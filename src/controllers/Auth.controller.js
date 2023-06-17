@@ -130,17 +130,16 @@ const confirmarUsuario = async(req, res) => {
     const pool = await getConnection()
 
     const {recordset} = await pool.request().query(`SELECT * FROM usuario WHERE token = '${token}'`)
-
+    
     if(recordset.length === 0 ){
-      return res.json({
-        mensaje: 'TOKEN IS ALREADY CONFIRMED'
-      })
+      const error = new Error("El Token ya esta confirmado")
+      return res.status(404).json({mensaje: error.message})
     }
 
     const user = recordset[0]
 
-    await pool.request().query(`UPDATE usuario SET confirmado = ~confirmado WHERE id = ${user.id}`)
-    await pool.request().query(`UPDATE usuario SET token = '' WHERE id = ${user.id} `)
+    await pool.request().query(`UPDATE usuario SET confirmado = ~confirmado WHERE id = '${user.id}'`)
+    await pool.request().query(`UPDATE usuario SET token = '' WHERE id = '${user.id}' `)
 
     return res.json({
       mensaje: "EMAIL CONFIRMED!!!"

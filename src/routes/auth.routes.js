@@ -12,4 +12,4 @@ router.post('/usuario/login', AuthController.iniciarSesionUsuario)
 router.get('/usuario/confirmar/:token', AuthController.confirmarUsuario)
 
 
-module.exports = router     
+module.exports = router 

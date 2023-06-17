@@ -15,3 +15,15 @@ Content-Type: application/json
   "correo": "emi@correo.com",
   "password": "12345"
 }
+
+###
+POST http://localhost:4000/api/usuario
+Content-Type: application/json
+
+{
+  "id_usuario": "EE306BD0-F001-4208-B59C-7C090FDF6244",
+  "telefono": "9614497858",
+  "nombre_tutor": "Guadalupe Nataren Orozco",
+  "tel_tutor": "910000000",
+  "institucion": "Universidad Politecnica de Chiapas"
+}
