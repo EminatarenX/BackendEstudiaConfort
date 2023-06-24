@@ -17,7 +17,7 @@ const checkAuth = async(req, res, next) => {
 
       const respuesta = await pool.
       request()
-      .query(`SELECT id, correo, nombre
+      .query(`SELECT id, correo, nombre,role
               FROM usuario
               WHERE id = '${decoded.id}'`)
 

@@ -3,7 +3,7 @@ const router = express.Router()
 const AdminController = require('../controllers/Admin.controller')
 
 
-router.get("/estudiantes/:id", AdminController.obtenerUsuarios)
+router.route("/habitacion/:id", (req, res)=> res.json({msg: "hola desde admin"}) )
 
 
 module.exports = router

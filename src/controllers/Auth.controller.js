@@ -84,6 +84,7 @@ const registrarUsuario = async(req, res) => {
 }
 
 const confirmarAdmin = async(req, res) => {
+
   const {token} = req.params
 
   try{
@@ -162,6 +163,7 @@ const iniciarSesionUsuario = async(req, res) => {
     const {recordset} = await pool.request().query(`SELECT * FROM usuario WHERE correo = '${correo}'`)
 
 
+
     if(recordset.length === 0){
 
       return res.status(400).json({
@@ -171,11 +173,34 @@ const iniciarSesionUsuario = async(req, res) => {
 
     const user = recordset[0]
 
+   
     if(!user.confirmado){
       return res.status(400).json({
         mensaje: "Esta correo no esta confirmado"
       })
     }
+
+    if(user.role === 'admin'){
+      const confirmedPassword = await bycrypt.compare(password, user.password)
+
+      if(!confirmedPassword){
+        return res.status(400).json({
+          mensaje: 'Contraseña incorrecta'
+        })
+      }
+
+      const jwt = generarJWT(user.id)
+      const nombre = user.nombre
+  
+  
+      return res.status(200).json({
+        // correo,
+        nombre,
+        jwt
+  
+      })
+    }
+
 
     const confirmedPassword = await bycrypt.compare(password, user.password)
 
@@ -212,61 +237,61 @@ async function perfilUsuario (req, res){
   res.json(usuario)
 } 
 
-const iniciarSesionAdmin = async(req, res) => {
-  const {correo, password} = req.body
+// const iniciarSesionAdmin = async(req, res) => {
+//   const {correo, password} = req.body
 
 
-  try{
+//   try{
 
-    const pool = await getConnection()
+//     const pool = await getConnection()
 
-    const respuesta = await pool.request().query(`SELECT * FROM administrador where correo = '${correo}'`)
+//     const respuesta = await pool.request().query(`SELECT * FROM administrador where correo = '${correo}'`)
 
 
-    if(respuesta.recordset.length === 0 )
-    {
-      return res.status(400).json({
-        mensaje: 'THIS CORREO IS NOT REGISTERED',
-      })
-    }
+//     if(respuesta.recordset.length === 0 )
+//     {
+//       return res.status(400).json({
+//         mensaje: 'THIS CORREO IS NOT REGISTERED',
+//       })
+//     }
 
-    const user = respuesta.recordset[0]
+//     const user = respuesta.recordset[0]
 
-    if(!user.confirmado){
-      return res.status(400).json({
-        mensaje: 'USER IS NOT CONFIRMED'
-      })
-    }
+//     if(!user.confirmado){
+//       return res.status(400).json({
+//         mensaje: 'USER IS NOT CONFIRMED'
+//       })
+//     }
 
     
 
-    const passCompared = await bycrypt.compare(password, user.password)
+//     const passCompared = await bycrypt.compare(password, user.password)
 
-    if (!passCompared){
-      return res.status(400).json({
-        mensaje: 'PASSWORD INCORRECT'
-      })
-    }
+//     if (!passCompared){
+//       return res.status(400).json({
+//         mensaje: 'PASSWORD INCORRECT'
+//       })
+//     }
  
-    const jwt = generarJWT(user.id)
-    const nombre = user.nombre  
+//     const jwt = generarJWT(user.id)
+//     const nombre = user.nombre  
 
-    return res.status(200).json({
-      mensaje: 'SUCCESS LOGIN',
-      nombre,
-      jwt
+//     return res.status(200).json({
+//       mensaje: 'SUCCESS LOGIN',
+//       nombre,
+//       jwt
 
-    })
+//     })
 
-  }catch(error){
+//   }catch(error){
 
-    return res.status(400).json({
-      mensaje: 'error'
-    })
+//     return res.status(400).json({
+//       mensaje: 'error'
+//     })
 
-  }
+//   }
 
-}
+// }
 
 
 
@@ -275,9 +300,7 @@ const iniciarSesionAdmin = async(req, res) => {
 module.exports = {
   registrarAdministrador,
   registrarUsuario,
-  iniciarSesionAdmin,
   iniciarSesionUsuario,
-  confirmarAdmin,
   confirmarUsuario,
   perfilUsuario
 
