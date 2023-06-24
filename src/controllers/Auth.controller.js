@@ -57,7 +57,6 @@ const registrarUsuario = async(req, res) => {
 
       await pool.request()
       .query(`INSERT INTO usuario (nombre, correo, password, token) VALUES ('${nombre}', '${correo}', '${hashedPassword}', '${token}')`)
-
       //enviar email al administrador
       emailRegistro({
         correo,
@@ -72,10 +71,9 @@ const registrarUsuario = async(req, res) => {
     
   } catch (error) {
  
-    const invalid = error.message
     return res.status(400).json({
       mensaje: 'El correo ya ha sido registrado ',
-      invalid
+
     })
 
   }
@@ -84,8 +82,6 @@ const registrarUsuario = async(req, res) => {
 
   
 }
-
-
 
 const confirmarAdmin = async(req, res) => {
   const {token} = req.params
@@ -105,7 +101,7 @@ const confirmarAdmin = async(req, res) => {
   const user = recordset[0]
 
   await pool.request().query(`UPDATE administrador SET confirmado = ~confirmado WHERE id = ${user.id}`)
-  await pool.request().query(`UPDATE administrador SET token = '' WHERE id = ${user.id}`)
+    await pool.request().query(`UPDATE administrador SET token = '' WHERE id = ${user.id}`)
 
   return res.json({
     mensaje: 'EMAIL CONFIRMED!!'
@@ -193,7 +189,7 @@ const iniciarSesionUsuario = async(req, res) => {
     const nombre = user.nombre
 
     return res.status(200).json({
-      correo,
+      // correo,
       nombre,
       jwt
 
@@ -258,7 +254,6 @@ const iniciarSesionAdmin = async(req, res) => {
     return res.status(200).json({
       mensaje: 'SUCCESS LOGIN',
       nombre,
-      correo,
       jwt
 
     })
@@ -272,6 +267,8 @@ const iniciarSesionAdmin = async(req, res) => {
   }
 
 }
+
+
 
 
 
