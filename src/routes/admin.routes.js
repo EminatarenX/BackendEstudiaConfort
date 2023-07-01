@@ -1,9 +1,12 @@
 const express = require('express')
 const router = express.Router()
 const AdminController = require('../controllers/Admin.controller')
+const checkAuth = require('../middleware/checkAuth')
 
+router.get('/', checkAuth, AdminController.obtenerUsuarios)
+router.post('/', checkAuth, AdminController.cambiarEstado)
+router.delete('/:id', checkAuth, AdminController.eliminarSolicitud)
 
-router.route("/habitacion/:id", (req, res)=> res.json({msg: "hola desde admin"}) )
 
 
 module.exports = router

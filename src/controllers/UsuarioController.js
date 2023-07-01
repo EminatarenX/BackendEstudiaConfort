@@ -1,50 +1,83 @@
 const { getConnection } = require("../db/connection");
 
 const actualizarDatos = async (req, res) => {
-  const { telefono, nombre_tutor, tel_tutor, institucion, id_usuario } =
-    req.body;
+  const { telefono, nombre_tutor, tel_tutor, institucion } = req.body;
 
+
+  const pool = await getConnection();
   try {
-    const pool = await getConnection();
+    const { recordset } = await pool.request().query(`SELECT * FROM datos_personales WHERE id_usuario = '${req.usuario.id}'`);
+    if(recordset.length !== 0){
+      const error = new Error('Ya has actualizado tus datos personales')
+      return res.status(400).json({msg: error.message})
+    }
+    
 
-    await pool.request()
-      .query(`INSERT INTO datos_personales (id_usuario,telefono,nombre_tutor,tel_tutor, institucion ) 
-            VALUES ('${id_usuario}', '${telefono}', '${nombre_tutor}', '${tel_tutor}', '${institucion}')`);
-    return res.json({
-      msg: "Los datos han sido actualizados correctamente",
-      datos: { telefono, nombre_tutor, tel_tutor, institucion },
-    });
+    await pool.request().query(`INSERT INTO datos_personales (id_usuario, telefono, nombre_tutor, tel_tutor, institucion) VALUES ('${req.usuario.id}','${telefono}', '${nombre_tutor}', '${tel_tutor}', '${institucion}')`)
+    
+    return res.json({msg: 'Datos actualizados correctamente',telefono, nombre_tutor, tel_tutor, institucion})
   } catch (error) {
-    return res
-      .status(400)
-      .json({ msg: "Hubo un error al actualizar lo datos" });
+    
+    res.status(400).json({msg: "Hubo un error, intenta mas tarde"})
   }
+
+
 };
+
+
 
 const obtenerDatosPersonales = async (req, res) => {
-  const { usuario } = req
-  
-  try {
-    const pool = await getConnection();
+ const {id} = req.usuario
+ 
 
-    const { recordset } = await pool
-      .request()
-      .query(
-        `SELECT * FROM datos_personales WHERE id_usuario = '${usuario.id}'`
-      );
-    
+  const pool = await getConnection();
+  try {
+    const { recordset } = await pool.request().query(`SELECT * FROM datos_personales WHERE id_usuario = '${id}'`);
     if(recordset.length === 0){
-      return res.json(usuario)
+      const error = new Error('No has actualizado tus datos personales')
+      return res.status(400).json({msg: error.message})
+    }
+    return res.json(recordset[0])
+    
+  } catch (error) {
+    return res.status(400).json({msg: "No se pudo obtener los datos personales"})
+  }
+
+};
+
+const mandarSolicitud = async (req, res) => {
+  const { id } = req.usuario
+  const { id_creador, id_habitacion } = req.body
+
+  const pool = await getConnection();
+
+  try {
+    const {recordset} = await pool.request()
+    .input('id_usuario', id)
+    .input('id_admin', id_creador)
+    .input('id_habitacion', id_habitacion)
+    .query(`SELECT * FROM solicitudes WHERE id_usuario = @id_usuario AND id_admin = @id_admin AND id_habitacion = @id_habitacion`)
+
+    if(recordset.length !== 0){
+      const error = new Error('Ya has enviado una solicitud a este usuario')
+      return res.status(400).json({msg: error.message})
     }
 
-    return res.json({datos: recordset[0]})
+    await pool.request()
+    .input('id_usuario', id)
+    .input('id_admin', id_creador)
+    .input('id_habitacion', id_habitacion)
+    .query(`INSERT INTO solicitudes (id_usuario, id_admin, id_habitacion) VALUES (@id_usuario, @id_admin, @id_habitacion)`)
 
+    return res.json({msg: 'Solicitud enviada correctamente'})
   } catch (error) {
-    return res.status(400).json({msg: 'Hubo un error, Intenta mas tarde'})
+    return res.status(400).json({msg: "No se pudo enviar la solicitud"})
   }
-};
+
+}
 
 module.exports = {
   actualizarDatos,
   obtenerDatosPersonales,
+  mandarSolicitud
 };
