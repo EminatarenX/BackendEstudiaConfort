@@ -3,7 +3,7 @@ const router = express.Router()
 const AuthController = require('../controllers/Auth.controller')
 const checkAuth = require('../middleware/checkAuth')
 
-// router.post('/admin/registro', AuthController.registrarAdministrador)
+router.post('/admin/registro', AuthController.registrarAdministrador)
 // router.post('/admin/login', AuthController.iniciarSesionAdmin)
 // router.get('/admin/confirmar/:token', AuthController.confirmarAdmin)
 router.get('/usuario/perfil',checkAuth, AuthController.perfilUsuario)

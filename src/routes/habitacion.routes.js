@@ -24,4 +24,5 @@ router.get('/',checkAuth,HabitacionController.obtenerHabitaciones)
 router.post('/estado',checkAuth,HabitacionController.actualizarEstado)
 router.post('/imagen/:id_habitacion', [checkAuth, uploads.array('habitaciones')], HabitacionController.subirImagen)
 
+
 module.exports = router

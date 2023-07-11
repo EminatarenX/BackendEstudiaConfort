@@ -1,7 +1,7 @@
 const { getConnection } = require("../db/connection");
 
 const actualizarDatos = async (req, res) => {
-  const { telefono, nombre_tutor, tel_tutor, institucion } = req.body;
+  const { telefono, nombre_tutor, tel_tutor, institucion, sexo } = req.body;
 
 
   const pool = await getConnection();
@@ -13,9 +13,9 @@ const actualizarDatos = async (req, res) => {
     }
     
 
-    await pool.request().query(`INSERT INTO datos_personales (id_usuario, telefono, nombre_tutor, tel_tutor, institucion) VALUES ('${req.usuario.id}','${telefono}', '${nombre_tutor}', '${tel_tutor}', '${institucion}')`)
+    await pool.request().query(`INSERT INTO datos_personales (id_usuario, telefono, nombre_tutor, tel_tutor, institucion, sexo) VALUES ('${req.usuario.id}','${telefono}', '${nombre_tutor}', '${tel_tutor}', '${institucion}', '${sexo}')`)
     
-    return res.json({msg: 'Datos actualizados correctamente',telefono, nombre_tutor, tel_tutor, institucion})
+    return res.json({msg: 'Datos actualizados correctamente',telefono, nombre_tutor, tel_tutor, institucion, sexo})
   } catch (error) {
     
     res.status(400).json({msg: "Hubo un error, intenta mas tarde"})
@@ -56,10 +56,10 @@ const mandarSolicitud = async (req, res) => {
     .input('id_usuario', id)
     .input('id_admin', id_creador)
     .input('id_habitacion', id_habitacion)
-    .query(`SELECT * FROM solicitudes WHERE id_usuario = @id_usuario AND id_admin = @id_admin AND id_habitacion = @id_habitacion`)
+    .query(`SELECT * FROM solicitudes WHERE id_usuario = @id_usuario AND id_admin = @id_admin and id_habitacion = @id_habitacion`)
 
     if(recordset.length !== 0){
-      const error = new Error('Ya has enviado una solicitud a este usuario')
+      const error = new Error('Ya has enviado una solicitud para esta habitacion')
       return res.status(400).json({msg: error.message})
     }
 
@@ -75,6 +75,7 @@ const mandarSolicitud = async (req, res) => {
   }
 
 }
+
 
 module.exports = {
   actualizarDatos,

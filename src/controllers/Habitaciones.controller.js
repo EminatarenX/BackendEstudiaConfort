@@ -1,46 +1,46 @@
-const {getConnection} = require("../db/connection")
+const { getConnection } = require("../db/connection")
 const fs = require('fs')
 
-const obtenerHabitacion = async(req, res) => {
-  const {id} = req.params
+const obtenerHabitacion = async (req, res) => {
+  const { id } = req.params
 
   const pool = await getConnection()
 
   try {
-    const {recordset} = await pool
-    .request()
-    .input('id', id)
-    .query(`SELECT * FROM deptos WHERE id = @id`)
+    const { recordset } = await pool
+      .request()
+      .input('id', id)
+      .query(`SELECT * FROM deptos WHERE id = @id`)
 
-    if(recordset.length === 0){
+    if (recordset.length === 0) {
       const error = new Error('No se encontro la habitacion')
-      return res.status(404).json({msg: error.message})
+      return res.status(404).json({ msg: error.message })
     }
 
-    
+
     let habitacion = recordset[0]
-    
-    const {recordset: imagenes} = await pool
-    .request()
-    .input('id', id)
-    .query(`SELECT * FROM archivo WHERE id_habitacion = @id`)
+
+    const { recordset: imagenes } = await pool
+      .request()
+      .input('id', id)
+      .query(`SELECT * FROM archivo WHERE id_habitacion = @id`)
 
     habitacion.imagenes = imagenes
-    console.log(habitacion)
-    res.json({habitacion})
+
+    res.json({ habitacion })
   } catch (error) {
-    console.log(error)
-    return res.status(400).json({msg: 'No se pudo obtener la habitacion'})
+    // console.log(error)
+    return res.status(400).json({ msg: 'No se pudo obtener la habitacion' })
   }
-  
+
 }
 
 const obtenerHabitaciones = async (req, res) => {
   const pool = await getConnection();
   try {
-      const { recordset } = await pool
-          .request()
-          .query(`SELECT deptos.*, 
+    const { recordset } = await pool
+      .request()
+      .query(`SELECT deptos.*, 
           MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1,
           MAX(CASE WHEN rn = 2 THEN archivo.filename END) AS imagen2
         FROM deptos
@@ -52,14 +52,14 @@ const obtenerHabitaciones = async (req, res) => {
         GROUP BY deptos.id,deptos.descripcion,deptos.capacidad,deptos.ciudad,
         deptos.direccion,deptos.id_usuario,deptos.precio,deptos.estado,deptos.id_creador`);
 
-      if (recordset.length === 0) {
-          const error = new Error('No hay habitaciones registradas')
-          return res.status(404).json({ msg: error.message })
-      }
+    if (recordset.length === 0) {
+      const error = new Error('No hay habitaciones registradas')
+      return res.status(404).json({ msg: error.message })
+    }
 
-      res.json(recordset);
+    res.json(recordset);
   } catch (error) {
-      return res.status(400).json({ msg: 'No se pudo obtener las habitaciones' });
+    return res.status(400).json({ msg: 'No se pudo obtener las habitaciones' });
 
   }
 }
@@ -67,33 +67,33 @@ const obtenerHabitaciones = async (req, res) => {
 
 const agregarHabitacion = async (req, res) => {
   const { descripcion, capacidad, ciudad, direccion, precio, estado } = req.body;
-  const {usuario} = req
+  const { usuario } = req
   const id_creador = usuario.id
 
   const pool = await getConnection();
 
   try {
-      await pool.request()
-          .input('descripcion', descripcion)
-          .input('capacidad', capacidad)
-          .input('ciudad', ciudad)
-          .input('direccion', direccion)
-          .input('precio', precio)
-          .input('estado', estado)
-          .input('id_creador', id_creador)
-          .query(`INSERT INTO deptos (descripcion, capacidad, ciudad, direccion, precio, estado,id_creador) 
+    await pool.request()
+      .input('descripcion', descripcion)
+      .input('capacidad', capacidad)
+      .input('ciudad', ciudad)
+      .input('direccion', direccion)
+      .input('precio', precio)
+      .input('estado', estado)
+      .input('id_creador', id_creador)
+      .query(`INSERT INTO deptos (descripcion, capacidad, ciudad, direccion, precio, estado,id_creador) 
               VALUES (@descripcion, @capacidad, @ciudad, @direccion, @precio, @estado, @id_creador)`);
 
-      const { recordset } = await pool.request()
-          .input('descripcion', descripcion)
-          .query(`SELECT id FROM deptos where descripcion = @descripcion`)
+    const { recordset } = await pool.request()
+      .input('descripcion', descripcion)
+      .query(`SELECT id FROM deptos where descripcion = @descripcion`)
 
-      const id_habitacion = recordset[0].id;
-      res.json({ msg: 'Habitacion agregada correctamente', id_habitacion })
+    const id_habitacion = recordset[0].id;
+    res.json({ msg: 'Habitacion agregada correctamente', id_habitacion })
 
   } catch (error) {
-      console.log(error)
-      res.status(400).json({ msg: 'No se pudo agregar la habitacion' })
+    console.log(error)
+    res.status(400).json({ msg: 'No se pudo agregar la habitacion' })
   }
 }
 
@@ -102,9 +102,14 @@ const subirImagen = async (req, res) => {
   const { id_habitacion } = req.params;
   const { files } = req;
 
-  if (!files) {
-      const error = new Error('No se subio ningun archivo')
-      return res.status(404).json({ msg: error.message })
+  if (!files || files[0] === undefined) {
+    fs.unlinkSync(files[1].path)
+    const error = new Error('No se subio ningun archivo')
+    return res.status(404).json({ msg: error.message })
+  } else if (files[1] === undefined) {
+    fs.unlinkSync(files[0].path)
+    const error = new Error('No se subio ningun archivo')
+    return res.status(404).json({ msg: error.message })
   }
 
   //sacar la extension del archivo
@@ -118,24 +123,28 @@ const subirImagen = async (req, res) => {
 
   if (extension1 !== 'jpg' && extension1 !== 'png' && extension1 !== 'jpeg' || extension2 !== 'jpg' && extension2 !== 'png' && extension2 !== 'jpeg') {
 
-      fs.unlinkSync(files[0].path)
-      fs.unlinkSync(files[1].path)
+    fs.unlinkSync(files[0].path)
+    fs.unlinkSync(files[1].path)
 
-      const error = new Error('Formato de archivo no valido')
-      return res.status(400).json({ msg: error.message, })
+    const error = new Error('Formato de archivo no valido')
+    return res.status(400).json({ msg: error.message, })
   }
   try {
-      const pool = await getConnection();
-      await pool.request()
-          .input('imagen1', files[0].filename)
-          .input('id_habitacion', id_habitacion)
-          .input('imagen2', files[1].filename)
-          .query(`INSERT INTO archivo (filename, id_habitacion) VALUES (@imagen1,@id_habitacion),(@imagen2, @id_habitacion)`)
+    const pool = await getConnection();
+    await pool.request()
+      .input('imagen1', files[0].filename)
+      .input('id_habitacion', id_habitacion)
+      .input('imagen2', files[1].filename)
+      .input('path1', files[0].path)
+      .input('path2', files[1].path)
+      .query(`INSERT INTO archivo (filename, id_habitacion, pathname) VALUES (@imagen1,@id_habitacion, @path1),(@imagen2, @id_habitacion, @path2)`)
 
-      return res.json({ msg: 'Imagen subida correctamente', imagen1: files[0].filename, imagen2: files[1].filename })
+    return res.json({ msg: 'Imagen subida correctamente', imagen1: files[0].filename, imagen2: files[1].filename })
 
   } catch (error) {
-      return res.status(400).json({ msg: "Hubo un error al guardar las imagenes" })
+    fs.unlinkSync(files[0].path)
+    fs.unlinkSync(files[1].path)
+    return res.status(400).json({ msg: "Hubo un error al guardar las imagenes" })
   }
 
 
@@ -143,16 +152,96 @@ const subirImagen = async (req, res) => {
 
 
 
-const modificarHabitacion = async(req, res) => {
+const modificarHabitacion = async (req, res) => {
+  const { id } = req.params;
+  const { descripcion, capacidad, ciudad, direccion, precio, estado } = req.body;
 
+
+  const pool = await getConnection();
+
+
+  try {
+    await pool.request()
+      .input('descripcion', descripcion)
+      .input('capacidad', capacidad)
+      .input('ciudad', ciudad)
+      .input('direccion', direccion)
+      .input('precio', precio)
+      .input('estado', estado)
+      .input('id', id)
+      .query(`UPDATE deptos SET descripcion = @descripcion, capacidad = @capacidad, ciudad = @ciudad, direccion = @direccion, precio = @precio, estado = @estado WHERE id = @id`);
+
+    const { recordset } = await pool.request().input('id', id).query(`SELECT * FROM deptos WHERE id = @id`)
+    const habitacion = recordset[0]
+    res.json({ msg: 'Habitacion modificada correctamente', habitacion })
+
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ msg: 'No se pudo modificar la habitacion' })
+  }
 }
 
-const eliminarHabitacion = async(req,res) => {
+const eliminarHabitacion = async (req, res) => {
+  const { id } = req.params
+  const pool = await getConnection()
+  try {
+    const { recordset } = await pool.request().input('id', id).query(`SELECT pathname FROM archivo WHERE id_habitacion = @id`)
 
+    fs.unlinkSync(recordset[0].pathname)
+    fs.unlinkSync(recordset[1].pathname)
+
+
+    // Ejecutar las consultas DELETE
+    await pool.request().input('id', id).query(`DELETE FROM deptos WHERE id = @id`);
+    await pool.request().input('id', id).query(`DELETE FROM archivo WHERE id_habitacion = @id`);
+
+
+    res.json({ msg: 'Habitacion eliminada correctamente' })
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ msg: 'No se pudo eliminar la habitacion' })
+  }
 }
 
-const actualizarEstado = async(req,res)=> {
+const actualizarEstado = async (req, res) => {
+  const { id } = req.body
+  const pool = await getConnection()
+  try {
+    const { recordset } = await pool.request().input('id', id).query(`SELECT estado FROM deptos WHERE id = @id`)
+    const estado = recordset[0].estado
+    if (estado === 'disponible') {
+      await pool.request().input('id', id).query(`UPDATE deptos SET estado = 'ocupado' WHERE id = @id`)
+    } else {
+      await pool.request().input('id', id).query(`UPDATE deptos SET estado = 'disponible' WHERE id = @id`)
+    }
+    res.json({ msg: 'Estado actualizado correctamente' })
+  } catch (error) {
+    res.status(400).json({ msg: 'No se pudo actualizar el estado' })
+  }
+}
 
+const getIndex = async(req, res) => {
+  const pool = await getConnection()
+
+  try {
+    const {recordset} = await pool.request().query(`
+      SELECT TOP 6 d.id, d.ciudad,
+      MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1
+      from deptos as d
+      inner join(SELECT id_habitacion, filename,
+      ROW_NUMBER() OVER(PARTITION BY id_habitacion ORDER BY filename) AS rn
+      from archivo)
+      AS archivo on d.id = archivo.id_habitacion
+      group by d.id, d.ciudad
+    `)
+
+    res.json(recordset)
+
+  } catch (error) {
+
+    return res.status(400).json({msg: 'No se pudo obtener las habitaciones', error})
+
+  }
 }
 
 
@@ -165,5 +254,6 @@ module.exports = {
   obtenerHabitacion,
   obtenerHabitaciones,
   actualizarEstado,
-  subirImagen
+  subirImagen,
+  getIndex
 }

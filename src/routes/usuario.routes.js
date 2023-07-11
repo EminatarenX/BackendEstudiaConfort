@@ -7,4 +7,5 @@ router.post('/',checkAuth,UsuarioController.actualizarDatos)
 router.get('/',checkAuth, UsuarioController.obtenerDatosPersonales)
 router.post('/solicitud',checkAuth, UsuarioController.mandarSolicitud)
 
+// 
 module.exports = router

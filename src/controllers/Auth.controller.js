@@ -7,6 +7,8 @@ const { emailRegistro } = require('../helpers/emails')
   
 const registrarAdministrador = async(req, res) => {
   const {nombre, correo, password} = req.body
+
+  
   const saltRounds = 10
 
 
@@ -19,7 +21,16 @@ const registrarAdministrador = async(req, res) => {
  
     const pool = await getConnection()
 
-    await pool.request().query(`INSERT INTO administrador (nombre, correo, password, token) VALUES ('${nombre}', '${correo}', '${hashedPassword}', '${token}') `)
+    const {recordset} = await pool.request()
+    .input('correo', correo)
+    .query('select * from usuario where correo = @correo')
+
+    if(recordset.length !== 0 ){
+      const error = new Error('Este correo ya esta registrado')
+      return res.status(400).json({msj: error.message})
+    }
+
+    await pool.request().query(`INSERT INTO usuario (nombre, correo, password, token, role) VALUES ('${nombre}', '${correo}', '${hashedPassword}', '${token}', 'admin') `)
 
     //enviar el email al administrador
     emailRegistro({
@@ -29,14 +40,15 @@ const registrarAdministrador = async(req, res) => {
     })
 
     return res.status(200).json({
-      mensaje: 'SUCCESS - USER CREATED',
+      msj: 'Hemos enviado un correo para la confirmacion de tu cuenta!',
       
     })
 
   } catch (error) {
+
     const invalid = error.message
     return res.status(400).json({
-      mensaje: 'CANNOT POST',
+      msj: 'Hubo un error, intentalo mas tarde',
       invalid
     })
   }

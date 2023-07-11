@@ -4,7 +4,8 @@ const express = require('express')
 const {getConnection} = require('./db/connection')
 const app = express()
 const path = require('path')
-
+const {iniciarTareas} = require('./helpers/tareas')
+const {getIndex} = require('./controllers/Habitaciones.controller')
 app.use(cors({
   origin: 'http://localhost:5173',  
 }))
@@ -14,8 +15,7 @@ app.use(express.json())
 const puerto = process.env.PUERTO
 getConnection()
 
-
-
+iniciarTareas()
 
 const rutasAdministrador = require('./routes/admin.routes')
 const rutasAuth = require('./routes/auth.routes')
@@ -27,6 +27,7 @@ app.use('/api/admin',rutasAdministrador)
 app.use('/api/auth', rutasAuth)
 app.use('/api/usuario', rutasUsuario),
 app.use('/api/habitacion', rutasHabitacion)
+app.use('/api/public', getIndex)
 
 app.listen(puerto, () => {
   console.log("*** RUNNING AT PORT ", puerto, " ***")
