@@ -1,20 +1,18 @@
 
-const crearTablaTemporal = `
-WITH cte AS (
-    SELECT
-      id_habitacion,
-      filename,
-      ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY filename) AS rn
+const obtenerHabitacionUsuario = `
+SELECT d.*,solicitudes.renta,
+    MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1,
+    MAX(CASE WHEN rn = 2 THEN archivo.filename END) AS imagen2
+FROM deptos AS d
+JOIN (
+    SELECT id_habitacion, filename,
+        ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY filename) AS rn
     FROM archivo
-  )
-  SELECT
-    c1.id_habitacion,
-    c1.filename AS imagen1,
-    c2.filename AS imagen2
-  INTO imagenes -- Nombre de la nueva tabla
-  FROM cte c1
-  LEFT JOIN cte c2 ON c1.id_habitacion = c2.id_habitacion AND c2.rn = 2
-  WHERE c1.rn = 1;`
+) AS archivo ON d.id = archivo.id_habitacion
+JOIN solicitudes ON solicitudes.id_habitacion = d.id
+WHERE solicitudes.id_usuario = '65945332-64E2-4B8F-9C4F-186820DC2E7F' 
+GROUP BY d.id, d.descripcion, d.capacidad, d.ciudad, d.direccion, d.id_usuario, d.precio, d.estado, d.id_creador, solicitudes.renta;
+`
 
   const obtenerSolicitudes = `
   SELECT u.nombre,
@@ -33,6 +31,6 @@ WITH cte AS (
 
 
   module.exports = {
-    crearTablaTemporal,
+    obtenerHabitacionUsuario,
     obtenerSolicitudes
   }

@@ -1,5 +1,5 @@
 const { getConnection } = require('../db/connection');
-const { crearTablaTemporal, obtenerSolicitudes } = require('../db/queries')
+const { obtenerSolicitudes } = require('../db/queries')
 const stripe = require('stripe')('sk_test_51NOtkQJRIprVyB9KFM0LOWd3hO3xocFp5xYeqGRLluV25UqaQPkBDlse65F7Alo4SnXGzXMt4DfM3I3teAxZl2ve005WzooTLI')
 const mssql = require('mssql')
 const fs = require('fs')
@@ -31,13 +31,20 @@ const cambiarEstado = async (req, res) => {
             await pool
                 .request()
                 .input('id', id)
-                .query(`UPDATE solicitudes SET estado = 'rentando' where id = @id`)
+                .query(`
+                    UPDATE solicitudes SET estado = 'rentando' where id = @id
+                    UPDATE deptos SET id_usuario = (SELECT id_usuario FROM solicitudes WHERE id = @id), estado = 'ocupado' where id = (SELECT id_habitacion FROM solicitudes WHERE id = @id)
+
+                    `)
 
         } else {
             await pool
                 .request()
                 .input('id', id)
-                .query(`UPDATE solicitudes SET estado = 'pendiente', renta = 'pendiente' where id = @id`)
+                .query(`
+                    UPDATE solicitudes SET estado = 'pendiente', renta = 'pendiente' where id = @id
+                    UPDATE deptos SET id_usuario = NULL, estado = 'disponible' where id = (SELECT id_habitacion FROM solicitudes WHERE id = @id)
+                `)
 
         }
         res.json({ msg: 'Estado actualizado' })
@@ -71,17 +78,6 @@ const obtenerHabitaciones = async (req, res) => {
     const { id } = req.usuario;
     const pool = await getConnection();
     try {   
-        // const schema = await pool.request().query(`	
-        // SELECT * 
-        // FROM INFORMATION_SCHEMA.TABLES 
-        // WHERE TABLE_SCHEMA = 'dbo' 
-        // AND TABLE_NAME = 'imagenes'`)
-
-        // if(schema.recordset.length !== 0){
-        //     await pool.request().query(`DROP TABLE imagenes`)
-        // }
-
-        // await pool.request().query(crearTablaTemporal);
 
         const { recordset } = await pool
             .request()
@@ -100,10 +96,7 @@ const obtenerHabitaciones = async (req, res) => {
         GROUP BY deptos.id,deptos.descripcion,deptos.capacidad,deptos.ciudad,
         deptos.direccion,deptos.id_usuario,deptos.precio,deptos.estado,deptos.id_creador	
             `)
-        //     .query(`select deptos.*, imagen1, imagen2 from deptos, imagenes 
-        //     where deptos.id = imagenes.id_habitacion and deptos.id_creador = @id_creador`)
 
-        // await pool.request().query(`DROP TABLE imagenes`)
         return res.json(recordset)
     } catch (error) {
         console.log(error)

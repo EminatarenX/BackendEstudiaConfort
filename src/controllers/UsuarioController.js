@@ -1,5 +1,5 @@
 const { getConnection } = require("../db/connection");
-
+const { obtenerHabitacionUsuario } = require('../db/queries')
 const actualizarDatos = async (req, res) => {
   const { telefono, nombre_tutor, tel_tutor, institucion, sexo } = req.body;
 
@@ -76,9 +76,30 @@ const mandarSolicitud = async (req, res) => {
 
 }
 
+const obtenerHabitacion = async(req, res) => {
+  const {id} = req.usuario
+  const pool = await getConnection();
+
+  try {
+    const {recordset} = await pool.request()
+    .input('id_usuario', id)
+    .query(obtenerHabitacionUsuario)
+
+    if(recordset.length === 0){
+      const error = new Error('No tienes una habitacion en renta')
+      return res.status(400).json({msg: error.message})
+    }
+
+    return res.json(recordset[0])
+
+  } catch (error) {
+    return res.status(400).json({msg: "No se pudo obtener la habitacion"})
+  }
+}
 
 module.exports = {
   actualizarDatos,
   obtenerDatosPersonales,
-  mandarSolicitud
+  mandarSolicitud,
+  obtenerHabitacion
 };
