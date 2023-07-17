@@ -29,6 +29,5 @@ app.use('/api/usuario', rutasUsuario),
 app.use('/api/habitacion', rutasHabitacion)
 app.use('/api/public', getIndex)
 
-app.listen(puerto, () => {
-  console.log("*** RUNNING AT PORT ", puerto, " ***")
-})
+app.listen(puerto)
+

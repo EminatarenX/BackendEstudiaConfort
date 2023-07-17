@@ -9,12 +9,12 @@ JOIN (
         ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY filename) AS rn
     FROM archivo
 ) AS archivo ON d.id = archivo.id_habitacion
-JOIN solicitudes ON solicitudes.id_habitacion = d.id
-WHERE solicitudes.id_usuario = '65945332-64E2-4B8F-9C4F-186820DC2E7F' 
+JOIN solicitudes ON solicitudes.id_habitacion = d.id 
+WHERE solicitudes.id_usuario = @id_usuario and solicitudes.estado = 'rentando'
 GROUP BY d.id, d.descripcion, d.capacidad, d.ciudad, d.direccion, d.id_usuario, d.precio, d.estado, d.id_creador, solicitudes.renta;
 `
 
-  const obtenerSolicitudes = `
+const obtenerSolicitudes = `
   SELECT u.nombre,
   d.institucion,d.nombre_tutor,d.tel_tutor, d.telefono,d.sexo,
   s.id as solicitud_id,s.estado, deptos.direccion,s.renta,
@@ -29,8 +29,17 @@ GROUP BY d.id, d.descripcion, d.capacidad, d.ciudad, d.direccion, d.id_usuario, 
   GROUP BY u.nombre, d.institucion, d.nombre_tutor, d.tel_tutor, d.telefono,d.sexo, s.id_habitacion, s.id, deptos.direccion,s.estado,s.renta;
   `
 
+const historialPagos = `
+  SELECT  p.id,u.nombre, p.fecha, p.id_habitacion, p.monto, d.direccion
+  FROM pagos AS p 
+  INNER JOIN usuario AS u ON u.id = p.id_usuario
+  INNER JOIN deptos AS d ON d.id = p.id_habitacion
+  WHERE p.id_admin = @id_admin
+  `
 
-  module.exports = {
-    obtenerHabitacionUsuario,
-    obtenerSolicitudes
-  }
+
+module.exports = {
+  obtenerHabitacionUsuario,
+  obtenerSolicitudes, 
+  historialPagos
+}

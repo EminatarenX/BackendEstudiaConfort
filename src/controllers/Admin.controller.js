@@ -1,6 +1,6 @@
 const { getConnection } = require('../db/connection');
-const { obtenerSolicitudes } = require('../db/queries')
-const stripe = require('stripe')('sk_test_51NOtkQJRIprVyB9KFM0LOWd3hO3xocFp5xYeqGRLluV25UqaQPkBDlse65F7Alo4SnXGzXMt4DfM3I3teAxZl2ve005WzooTLI')
+const { obtenerSolicitudes, historialPagos } = require('../db/queries')
+
 const mssql = require('mssql')
 const fs = require('fs')
 
@@ -105,62 +105,6 @@ const obtenerHabitaciones = async (req, res) => {
 }
 
 const pagarServicio = async (req, res) => {
-    const { usuario } = req
-    const { descripcion, monto, fecha } = req.body
-    const pool = await getConnection();
-    console.log(req.body)
-    try {
-        // // Crea un token a partir de los datos de la tarjeta
-        // const token = await stripe.tokens.create({  
-        //     card: {
-        //         number: numero,
-        //         exp_month: exp_mes,
-        //         exp_year: exp_anio,
-        //         cvc,
-        //     },
-        // });
-
-        // // Crea un nuevo PaymentIntent
-        // const paymentIntent = await stripe.paymentIntents.create({
-        //     amount: monto,
-        //     currency: 'usd',
-        //     payment_method_types: ['card'],
-        //     payment_method_data: {
-        //         type: 'card',
-        //         card: {
-        //             token: token.id, // Utiliza el token creado anteriormente
-        //         },
-        //     },
-        // });
-
-
-
-        // console.log(paymentIntent)
-
-        // // Completa el pago
-        // const confirtm = await stripe.paymentIntents.confirm(paymentIntent.id);
-
-        // //  El pago se completó exitosamente
-        // console.log(confirtm)
-        // return res.json({ msg: 'Pago realizado correctamente' })
-        //   actualizar estado de pago
-        await pool.request()
-            .input('id_admin', usuario.id)
-            .query(`UPDATE usuario SET renta = 'pagado' WHERE id = @id_admin`)
-
-
-        await pool.request()
-            .input('id_admin', usuario.id)
-            .input('monto', monto)
-            .input('descripcion', descripcion)
-            .input('fecha', fecha)
-            .query(`INSERT INTO pagos (monto, descripcion, fecha, id_admin) VALUES (@monto, @descripcion, @fecha, @id_admin)`)
-        
-        
-        return res.json({ msg: 'Pago realizado correctamente' })
-    } catch (error) {
-        console.log(error)
-    }
 
 }
 
@@ -193,6 +137,26 @@ const modificarPago = async(req, res) => {
 }
 
 
+const historial = async (req, res) => {
+    const pool = await getConnection();
+    const {usuario} = req;
+
+    try {
+        const {recordset} = await pool
+        .request().input('id_admin', usuario.id).query(historialPagos)
+
+        if(recordset.length === 0)
+        {
+            const error = new Error('No hay ningun registro')
+            return res.status(400).json({msg: error.message})
+        }
+
+        return res.json(recordset)
+    } catch (error) {
+        return res.status(400).json({msg: 'No se pudo obtener el historial'})
+    }
+}
+
 
 
 module.exports = {
@@ -201,5 +165,6 @@ module.exports = {
     eliminarSolicitud,
     obtenerHabitaciones,
     pagarServicio,
-    modificarPago
+    modificarPago,
+    historial
 }
