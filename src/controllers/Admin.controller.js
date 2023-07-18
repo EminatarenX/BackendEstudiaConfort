@@ -84,12 +84,12 @@ const obtenerHabitaciones = async (req, res) => {
             .input('id_creador', id)
             .query(`
                 SELECT deptos.*, 
-          MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1,
-          MAX(CASE WHEN rn = 2 THEN archivo.filename END) AS imagen2
+          MAX(CASE WHEN rn = 1 THEN archivo.pathname END) AS imagen1,
+          MAX(CASE WHEN rn = 2 THEN archivo.pathname END) AS imagen2
         FROM deptos
         JOIN (
-          SELECT id_habitacion, filename,
-            ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY filename) AS rn
+          SELECT id_habitacion, pathname,
+            ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY pathname) AS rn
           FROM archivo
         ) AS archivo ON deptos.id = archivo.id_habitacion
 		where deptos.id_creador = @id_creador

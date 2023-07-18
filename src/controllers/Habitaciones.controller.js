@@ -41,12 +41,12 @@ const obtenerHabitaciones = async (req, res) => {
     const { recordset } = await pool
       .request()
       .query(`SELECT deptos.*, 
-          MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1,
-          MAX(CASE WHEN rn = 2 THEN archivo.filename END) AS imagen2
+          MAX(CASE WHEN rn = 1 THEN archivo.pathname END) AS imagen1,
+          MAX(CASE WHEN rn = 2 THEN archivo.pathname END) AS imagen2
         FROM deptos
         JOIN (
-          SELECT id_habitacion, filename,
-            ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY filename) AS rn
+          SELECT id_habitacion, pathname,
+            ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY pathname) AS rn
           FROM archivo
         ) AS archivo ON deptos.id = archivo.id_habitacion
         GROUP BY deptos.id,deptos.descripcion,deptos.capacidad,deptos.ciudad,
@@ -220,11 +220,11 @@ const actualizarEstado = async (req, res) => {
   }
 }
 
-const getIndex = async(req, res) => {
+const getIndex = async (req, res) => {
   const pool = await getConnection()
 
   try {
-    const {recordset} = await pool.request().query(`
+    const { recordset } = await pool.request().query(`
       SELECT TOP 6 d.id, d.ciudad,
       MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1
       from deptos as d
@@ -239,11 +239,48 @@ const getIndex = async(req, res) => {
 
   } catch (error) {
 
-    return res.status(400).json({msg: 'No se pudo obtener las habitaciones', error})
+    return res.status(400).json({ msg: 'No se pudo obtener las habitaciones', error })
 
   }
 }
 
+const cloudinary = require('cloudinary').v2;
+const subirImagenC = async (req, res) => {
+  const { id_habitacion } = req.params;
+  const { files } = req;
+  const imageUrls = [];
+
+  // Iterar sobre los archivos cargados
+
+  try {
+    for (const file of req.files) {
+      // Subir el archivo a Cloudinary
+      const result = await cloudinary.uploader.upload(file.path);
+
+      // Guardar la URL del archivo en el arreglo
+      imageUrls.push(result.secure_url);
+    }
+
+    const pool = await getConnection();
+
+    await pool.request()
+    .input('imagen1', files[0].filename)
+    .input('id_habitacion', id_habitacion)
+    .input('imagen2', files[1].filename)
+    .input('path1', imageUrls[0])
+    .input('path2', imageUrls[1])
+    .query(`INSERT INTO archivo (filename, id_habitacion, pathname) VALUES (@imagen1,@id_habitacion, @path1),(@imagen2, @id_habitacion, @path2)`)
+pathname
+
+    return res.json({ msg: 'Imagen subida correctamente', imagen1: imageUrls[0], imagen2: imageUrls[1] })
+     
+  } catch (error) {
+    console.log(error)
+  }
+
+
+
+}
 
 
 
@@ -255,5 +292,6 @@ module.exports = {
   obtenerHabitaciones,
   actualizarEstado,
   subirImagen,
+  subirImagenC,
   getIndex
 }

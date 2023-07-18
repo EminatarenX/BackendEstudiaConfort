@@ -8,6 +8,8 @@ const {iniciarTareas} = require('./helpers/tareas')
 const {getIndex} = require('./controllers/Habitaciones.controller')
 app.use(cors({
   origin: 'http://localhost:5173',  
+  credentials: true
+  
 }))
 
 app.use(express.json())
@@ -29,5 +31,7 @@ app.use('/api/usuario', rutasUsuario),
 app.use('/api/habitacion', rutasHabitacion)
 app.use('/api/public', getIndex)
 
-app.listen(puerto)
+app.listen(puerto , () => {
+    console.log(`Servidor corriendo en el puerto ${puerto}`)
+})
 

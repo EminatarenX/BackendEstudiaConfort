@@ -1,12 +1,12 @@
 
 const obtenerHabitacionUsuario = `
 SELECT d.*,solicitudes.renta,
-    MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1,
-    MAX(CASE WHEN rn = 2 THEN archivo.filename END) AS imagen2
+    MAX(CASE WHEN rn = 1 THEN archivo.pathname END) AS imagen1,
+    MAX(CASE WHEN rn = 2 THEN archivo.pathname END) AS imagen2
 FROM deptos AS d
 JOIN (
-    SELECT id_habitacion, filename,
-        ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY filename) AS rn
+    SELECT id_habitacion, pathname,
+        ROW_NUMBER() OVER (PARTITION BY id_habitacion ORDER BY pathname) AS rn
     FROM archivo
 ) AS archivo ON d.id = archivo.id_habitacion
 JOIN solicitudes ON solicitudes.id_habitacion = d.id 
@@ -18,7 +18,7 @@ const obtenerSolicitudes = `
   SELECT u.nombre,
   d.institucion,d.nombre_tutor,d.tel_tutor, d.telefono,d.sexo,
   s.id as solicitud_id,s.estado, deptos.direccion,s.renta,
-  MIN(archivo.filename) as filename
+  MIN(archivo.pathname) as filename
   FROM usuario AS u inner join solicitudes AS s 
   on u.id = s.id_usuario 
   inner join datos_personales AS d
