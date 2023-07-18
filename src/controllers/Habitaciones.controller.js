@@ -183,22 +183,34 @@ const modificarHabitacion = async (req, res) => {
 
 const eliminarHabitacion = async (req, res) => {
   const { id } = req.params
-  const pool = await getConnection()
+  const {public_id: url1, public_id2: url2} = req.body
+
   try {
-    const { recordset } = await pool.request().input('id', id).query(`SELECT pathname FROM archivo WHERE id_habitacion = @id`)
 
-    fs.unlinkSync(recordset[0].pathname)
-    fs.unlinkSync(recordset[1].pathname)
+  const parts1 = url1.split('/');
+  const parts2 = url2.split('/');
 
+  const filename1 = parts1[parts1.length - 1];
+  const filename2 = parts2[parts2.length - 1];
 
+  const public_id = filename1.split('.')[0];
+  const public_id2 = filename2.split('.')[0];
+
+  await cloudinary.uploader.destroy(public_id);
+  await cloudinary.uploader.destroy(public_id2);
+
+  
+  const pool = await getConnection()
+ 
     // Ejecutar las consultas DELETE
-    await pool.request().input('id', id).query(`DELETE FROM deptos WHERE id = @id`);
-    await pool.request().input('id', id).query(`DELETE FROM archivo WHERE id_habitacion = @id`);
-
+    await pool.request().input('id', id).query(`
+    DELETE FROM archivo WHERE id_habitacion = @id
+    DELETE FROM solicitudes WHERE id_habitacion = @id
+    DELETE FROM deptos WHERE id = @id
+    `);
 
     res.json({ msg: 'Habitacion eliminada correctamente' })
   } catch (error) {
-    console.log(error)
     res.status(400).json({ msg: 'No se pudo eliminar la habitacion' })
   }
 }
