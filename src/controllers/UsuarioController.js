@@ -143,6 +143,7 @@ const pagarHabitacion = async(req, res) => {
 
     return res.json({msg: 'Pago realizado correctamente'})
   } catch (error) {
+    console.log(error)
 
     return res.status(400).json({msg: 'No se pudo realizar el pago'})
    
