@@ -270,7 +270,7 @@ const subirImagenC = async (req, res) => {
     .input('path1', imageUrls[0])
     .input('path2', imageUrls[1])
     .query(`INSERT INTO archivo (filename, id_habitacion, pathname) VALUES (@imagen1,@id_habitacion, @path1),(@imagen2, @id_habitacion, @path2)`)
-pathname
+
 
     return res.json({ msg: 'Imagen subida correctamente', imagen1: imageUrls[0], imagen2: imageUrls[1] })
      
