@@ -123,7 +123,7 @@ const pagarHabitacion = async(req, res) => {
 
     let vencimiento = new Date();
     vencimiento.setMonth(vencimiento.getMonth() + 1);
-
+   
     await pool.request()
     .input('id_usuario', id_usuario)
     .input('id_habitacion', id_habitacion)
@@ -143,7 +143,7 @@ const pagarHabitacion = async(req, res) => {
 
     return res.json({msg: 'Pago realizado correctamente'})
   } catch (error) {
-    console.log(error)
+  
 
     return res.status(400).json({msg: 'No se pudo realizar el pago'})
    
