@@ -238,10 +238,10 @@ const getIndex = async (req, res) => {
   try {
     const { recordset } = await pool.request().query(`
       SELECT TOP 6 d.id, d.ciudad,
-      MAX(CASE WHEN rn = 1 THEN archivo.filename END) AS imagen1
+      MAX(CASE WHEN rn = 1 THEN archivo.pathname END) AS imagen1
       from deptos as d
-      inner join(SELECT id_habitacion, filename,
-      ROW_NUMBER() OVER(PARTITION BY id_habitacion ORDER BY filename) AS rn
+      inner join(SELECT id_habitacion, pathname,
+      ROW_NUMBER() OVER(PARTITION BY id_habitacion ORDER BY pathname) AS rn
       from archivo)
       AS archivo on d.id = archivo.id_habitacion
       group by d.id, d.ciudad
