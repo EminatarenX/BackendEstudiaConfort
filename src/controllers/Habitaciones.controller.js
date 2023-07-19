@@ -1,4 +1,5 @@
 const { getConnection } = require("../db/connection")
+const cloudinary = require('cloudinary').v2;
 const fs = require('fs')
 
 const obtenerHabitacion = async (req, res) => {
@@ -103,11 +104,9 @@ const subirImagen = async (req, res) => {
   const { files } = req;
 
   if (!files || files[0] === undefined) {
-    fs.unlinkSync(files[1].path)
     const error = new Error('No se subio ningun archivo')
     return res.status(404).json({ msg: error.message })
   } else if (files[1] === undefined) {
-    fs.unlinkSync(files[0].path)
     const error = new Error('No se subio ningun archivo')
     return res.status(404).json({ msg: error.message })
   }
@@ -256,7 +255,7 @@ const getIndex = async (req, res) => {
   }
 }
 
-const cloudinary = require('cloudinary').v2;
+
 const subirImagenC = async (req, res) => {
   const { id_habitacion } = req.params;
   const { files } = req;

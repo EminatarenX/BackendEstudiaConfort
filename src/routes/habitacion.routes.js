@@ -36,7 +36,6 @@ router.route('/:id')
 .post(checkAuth,HabitacionController.eliminarHabitacion)
 router.get('/',checkAuth,HabitacionController.obtenerHabitaciones)
 router.post('/estado',checkAuth,HabitacionController.actualizarEstado)
-
 router.post('/imagenc/:id_habitacion', [checkAuth, upload.array('habitaciones', 2)], HabitacionController.subirImagenC)
 
 
