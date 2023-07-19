@@ -7,7 +7,7 @@ const path = require('path')
 const {iniciarTareas} = require('./helpers/tareas')
 const {getIndex} = require('./controllers/Habitaciones.controller')
 app.use(cors({
-  origin: 'http://localhost:5173',  
+  origin: process.env.FRONTEND_URL,  
   credentials: true
   
 }))
