@@ -8,8 +8,8 @@ const emailRegistro = async (datos) => {
   const transport = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "eminataren2002@gmail.com",
-      pass: "mllyxowmntwaberp"
+      user: "estudiaconofort@gmail.com",
+      pass: "iwmjexmtnnicglsr"
     }
   });
 
