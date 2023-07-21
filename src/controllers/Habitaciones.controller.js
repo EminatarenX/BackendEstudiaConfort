@@ -286,6 +286,7 @@ const subirImagenC = async (req, res) => {
     return res.json({ msg: 'Imagen subida correctamente', imagen1: imageUrls[0], imagen2: imageUrls[1] })
      
   } catch (error) {
+ 
     return res.status(400).json({ msg: "Hubo un error al guardar las imagenes" })
   }
 
