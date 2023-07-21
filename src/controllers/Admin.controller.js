@@ -51,7 +51,7 @@ const cambiarEstado = async (req, res) => {
 
     } catch (error) {
         res.status(400).json({ msg: 'No se pudo actualizar el estado' })
-        console.log(error)
+        
     }   
 
 }
@@ -99,7 +99,7 @@ const obtenerHabitaciones = async (req, res) => {
 
         return res.json(recordset)
     } catch (error) {
-        console.log(error)
+   
         res.status(400).json({ msg: 'No se pudo obtener las habitaciones' })
     }
 }
