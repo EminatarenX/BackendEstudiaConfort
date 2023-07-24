@@ -90,63 +90,12 @@ const agregarHabitacion = async (req, res) => {
       .query(`SELECT id FROM deptos where descripcion = @descripcion`)
 
     const id_habitacion = recordset[0].id;
-    res.json({ msg: 'Habitacion agregada correctamente', id_habitacion })
+    return res.json({ msg: 'Habitacion agregada correctamente', id_habitacion })
 
   } catch (error) {
 
     return res.status(400).json({ msg: 'No se pudo agregar la habitacion' })
   }
-}
-
-
-const subirImagen = async (req, res) => {
-  const { id_habitacion } = req.params;
-  const { files } = req;
-
-  if (!files || files[0] === undefined) {
-    const error = new Error('No se subio ningun archivo')
-    return res.status(404).json({ msg: error.message })
-  } else if (files[1] === undefined) {
-    const error = new Error('No se subio ningun archivo')
-    return res.status(404).json({ msg: error.message })
-  }
-
-  //sacar la extension del archivo
-  let imagen1 = files[0].originalname;
-  let imagen2 = files[1].originalname;
-
-  const imagensplit1 = imagen1.split('\.');
-  const imagensplit2 = imagen2.split('\.');
-  const extension1 = imagensplit1[1];
-  const extension2 = imagensplit2[1];
-
-  if (extension1 !== 'jpg' && extension1 !== 'png' && extension1 !== 'jpeg' || extension2 !== 'jpg' && extension2 !== 'png' && extension2 !== 'jpeg') {
-
-    fs.unlinkSync(files[0].path)
-    fs.unlinkSync(files[1].path)
-
-    const error = new Error('Formato de archivo no valido')
-    return res.status(400).json({ msg: error.message, })
-  }
-  try {
-    const pool = await getConnection();
-    await pool.request()
-      .input('imagen1', files[0].filename)
-      .input('id_habitacion', id_habitacion)
-      .input('imagen2', files[1].filename)
-      .input('path1', files[0].path)
-      .input('path2', files[1].path)
-      .query(`INSERT INTO archivo (filename, id_habitacion, pathname) VALUES (@imagen1,@id_habitacion, @path1),(@imagen2, @id_habitacion, @path2)`)
-
-    return res.json({ msg: 'Imagen subida correctamente', imagen1: files[0].filename, imagen2: files[1].filename })
-
-  } catch (error) {
-    fs.unlinkSync(files[0].path)
-    fs.unlinkSync(files[1].path)
-    return res.status(400).json({ msg: "Hubo un error al guardar las imagenes" })
-  }
-
-
 }
 
 
@@ -259,14 +208,14 @@ const getIndex = async (req, res) => {
 const subirImagenC = async (req, res) => {
   const { id_habitacion } = req.params;
   const { files } = req;
-  const imageUrls = [];
+  let imageUrls = [];
 
   // Iterar sobre los archivos cargados
 
   try {
-    for (const file of req.files) {
+    for (let file of req.files) {
       // Subir el archivo a Cloudinary
-      const result = await cloudinary.uploader.upload(file.path);
+      let result = await cloudinary.uploader.upload(file.path);
 
       // Guardar la URL del archivo en el arreglo
       imageUrls.push(result.secure_url);
@@ -303,7 +252,6 @@ module.exports = {
   obtenerHabitacion,
   obtenerHabitaciones,
   actualizarEstado,
-  subirImagen,
   subirImagenC,
   getIndex
 }
