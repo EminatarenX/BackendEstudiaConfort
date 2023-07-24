@@ -146,18 +146,10 @@ const eliminarHabitacion = async (req, res) => {
   const public_id = filename1.split('.')[0];
   const public_id2 = filename2.split('.')[0];
 
-  // await cloudinary.uploader.destroy(public_id);
-  // await cloudinary.uploader.destroy(public_id2);
+  let public_ids = [public_id, public_id2]
 
-    //test
-    const {recordset} = await pool.request().input('id', id).query(`SELECT filename FROM archivo WHERE id_habitacion = @id`)
-  
-    const nombrearchivo1 = recordset[0].filename
-    const nombrearchivo2 = recordset[1].filename
-  
-    await cloudinary.uploader.destroy(nombrearchivo1);
-    await cloudinary.uploader.destroy(nombrearchivo2);
-    //final del test
+  await cloudinary.api.delete_resources(public_ids)
+
   
   const pool = await getConnection()
  
